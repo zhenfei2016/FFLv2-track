@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <utils/FFL_MemoryWatch.hpp>
-
+#include <unistd.h>
 const char* ShowLogTag[] = {
 	//"audio",
 	//"timestamp",
@@ -72,8 +72,7 @@ extern int serverMain();
 
 //static const char* gAppPath = 0;
 extern "C" int main(int argc ,const char* argv[]) {	
-	FFL::startMemoryWatch();
-
+	FFL::startMemoryWatch(); 
 	//const char* appPath = argv[0];
 	//gAppPath=(const char*)FFL_malloc(strlen(appPath));
 

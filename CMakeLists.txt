@@ -6,7 +6,7 @@ INCLUDE_DIRECTORIES(../FFLv2-lib/include)
 LINK_DIRECTORIES(../install/FFLv2-lib/libs)
 
 SET(LOCAL_SRC_FILES
-   main.cpp;trackMain.cpp)
+   service/main.cpp;service/trackMain.cpp)
 
 if (MSVC)
     add_definitions("/wd4819")

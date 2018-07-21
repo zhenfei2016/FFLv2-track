@@ -12,7 +12,7 @@ public:
 #ifdef WIN32
         const char* path="e:\\pipeline_track.txt";
 #else
-        const char* path="/Users/zhufeifei/work/movic/track-pipelinemsg.log";
+        const char* path="./pipeline-track.log";
 #endif
 		open(path);
 	}
@@ -22,7 +22,7 @@ public:
 	}
 
 	void open(const char* path) {
-		if (!FFL::fileIsExist(path)) {
+		if (FFL::fileIsExist(path)) {
 			mFile.close();
 			mFile.open(path);
 		}else{
@@ -89,32 +89,29 @@ public:
 };
 
 TrackFileReader  gTrackFile;
-class HttpClient : public FFL::HttpConnectHandler {
+
+class HttpApiGetTrackListHandelr : public FFL::HttpApiHandler{
 public:
-	HttpClient() {
-
-	}
-
-	virtual void onReceiveRequest(FFL::HttpConnect* conn, FFL::HttpRequest* request) {
-		
-		FFL::String json;
-		FFL::Vector< FFL::String >  arr;
-		gTrackFile.readJson(10,arr);
-
-		for (uint32_t i = 0; i < arr.size(); i++) {
-			if (json.empty()) {
-				json += arr[i];
-			}
-			else {
-				json += "," + arr[i];
-			}
-		}		
-
-		FFL::sp<FFL::HttpResponse> res = request->createResponse();
-		res->writeJson("["+ json + "]");
-
-		conn->close();
-	}	
+    virtual void onHttpQuery(FFL::HttpConnect* conn, FFL::String& path, FFL::String& query){
+        FFL::String json;
+        FFL::Vector< FFL::String >  arr;
+        gTrackFile.readJson(10,arr);
+        
+        for (uint32_t i = 0; i < arr.size(); i++) {
+            if (json.empty()) {
+                json += arr[i];
+            }
+            else {
+                json += "," + arr[i];
+            }
+        }
+        
+        FFL::sp<FFL::HttpResponse> res = conn->createResponse();
+        res->writeJson("{\"tarck\":["+ json + "]}");
+        
+        conn->close();
+    }
+    
 };
 
 static int gExitFlag = 0;
@@ -160,10 +157,9 @@ static CmdOption  gCmdOption[] = {
 
 int serverMain() {
 	FFL::HttpConnectMgr mgr;
-	mgr.setHandler(new HttpClient());
-
-	char buf[1024] = {};
-	FFL_socketLocalAddr(buf, 1023);
+    
+    FFL::sp<FFL::HttpApiHandler> handler=new HttpApiGetTrackListHandelr();
+    mgr.registerApi("/FFLv2?getTrackList", handler);
 
 	FFL::TcpServer server(NULL,5000);
 	server.setConnectManager(&mgr);
