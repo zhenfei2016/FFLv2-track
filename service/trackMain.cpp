@@ -10,7 +10,7 @@ class TrackFileReader {
 public:
 	TrackFileReader() {
 #ifdef WIN32
-        const char* path="e:\\pipeline_track.txt";
+        const char* path="e:\\123.txt";
 #else
         const char* path="./pipeline-track.log";
 #endif
@@ -89,26 +89,28 @@ public:
 };
 
 TrackFileReader  gTrackFile;
-
+FFL::Vector< FFL::String >  gTrackArr;
 class HttpApiGetTrackListHandelr : public FFL::HttpApiHandler{
 public:
     virtual void onHttpQuery(FFL::HttpConnect* conn, FFL::String& path, FFL::String& query){
-        FFL::String json;
-        FFL::Vector< FFL::String >  arr;
-        gTrackFile.readJson(10,arr);
-        
-        for (uint32_t i = 0; i < arr.size(); i++) {
+        FFL::String json;        
+		if (gTrackArr.size() == 0) {
+			gTrackFile.readJson(1000, gTrackArr);
+		}
+		printf("write json count=%d. \n",gTrackArr.size());
+        for (uint32_t i = 0; i < gTrackArr.size(); i++) {
             if (json.empty()) {
-                json += arr[i];
+                json += gTrackArr[i];
             }
             else {
-                json += "," + arr[i];
+                json += "," + gTrackArr[i];
             }
         }
         
         FFL::sp<FFL::HttpResponse> res = conn->createResponse();
         res->writeJson("{\"tarck\":["+ json + "]}");
         
+		FFL_sleep(1000);
         conn->close();
     }
     
@@ -160,7 +162,9 @@ int serverMain() {
     
     FFL::sp<FFL::HttpApiHandler> handler=new HttpApiGetTrackListHandelr();
     mgr.registerApi("/FFLv2?getTrackList", handler);
-
+	//
+	//&page=1&num=10
+	//
 	FFL::TcpServer server(NULL,5000);
 	server.setConnectManager(&mgr);
 	server.start();
