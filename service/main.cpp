@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <utils/FFL_MemoryWatch.hpp>
+#ifdef WIN32
+
+#else
 #include <unistd.h>
+#endif 
+
 const char* ShowLogTag[] = {
 	//"audio",
 	//"timestamp",
