@@ -1,3 +1,15 @@
+/*
+*  This file is part of FFL project.
+*
+*  The MIT License (MIT)
+*  Copyright (C) 2017-2018 zhufeifei All rights reserved.
+*
+*  main.cpp   
+*  Created by zhufeifei(34008081@qq.com) on 2018/07/26 
+*  https://github.com/zhenfei2016/FFL-v2.git
+*
+*
+*/
 #include <stdio.h>
 #include <utils/FFL_MemoryWatch.hpp>
 #ifdef WIN32
@@ -75,21 +87,16 @@ int printLog(int level,const char* tag, const char *format, va_list v)
 #endif
 extern int serverMain();
 
-//static const char* gAppPath = 0;
 extern "C" int main(int argc ,const char* argv[]) {	
-	FFL::startMemoryWatch(); 
-	//const char* appPath = argv[0];
-	//gAppPath=(const char*)FFL_malloc(strlen(appPath));
-
+	FFL::startMemoryWatch(); 	
 #if WIN32
 //	FFL_LogHook(printLogAll);
 #endif
     FFL_LogSetLevel(FFL_LOG_LEVEL_ALL);
 	//FFL_LogSetLevel(FFL_LOG_LEVEL_WARNING);
-	FFL_LOG_INFO("start server");
+	FFL_LOG_INFO("start track server");
 	serverMain();
-	FFL_LOG_INFO("quit server");
-	FFL_malloc_memory_dump();
-	getchar();
+	FFL_LOG_INFO("quit track server");
+	FFL_dumpMemoryLeak();	
 	return 0;
 }

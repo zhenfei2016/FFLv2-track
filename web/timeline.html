@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <title>demo</title>
+  <style type="text/css">
+   body {
+    margin:0; padding:0;
+   }
+   ul {
+    list-style:none; margin:0; padding:0;
+   }
+   li {
+    position:absolute;
+   }
+   #power {
+    font-size:50px; line-height:100px; border:2px solid green; color:green;
+    position:absolute; right:20px; bottom:20px; 
+   }
+  </style>  
+  
+ </head>
+ <body>
+  <ul id="canvas"></ul>
+ </body>
+ <script type="text/javascript">
+  var $ = function(id) {
+   return document.getElementById(id);
+  }
+  var $_name = function(tag) {
+   return document.getElementsByTagName(tag);
+  }
+ var Event_click = function(ev){
+      let th = this;
+      alert(th.data)
+ }
+ 
+ var createLi = function(attr,showtext) {
+   var ele = document.createElement("li");
+   if(showtext!=null){
+   	   ele.onclick = Event_click;
+   	   ele.data=showtext;
+   	}
+   ele.style.backgroundColor = attr.bgColor || "black";
+   ele.style.left   = attr.left + "px";
+   ele.style.top    = attr.top + "px";
+   ele.style.width  = attr.width+ "px";
+   ele.style.height = attr.height + "px";
+
+   return ele;
+  }
+  var loca = {
+   x: 1000, 
+   y: 0
+  };
+ 
+ </script>
+ <script> 
+
+ var trackList;
+ var xmlHttpReg = null;
+function ajax() {
+	if (window.ActiveXObject) {//如果是IE
+	   xmlHttpReg = new ActiveXObject("Microsoft.XMLHTTP");
+	} else if (window.XMLHttpRequest) {
+	   xmlHttpReg = new XMLHttpRequest(); //实例化一个xmlHttpReg
+	}
+	//如果实例化成功,就调用open()方法,就开始准备向服务器发送请求
+	if (xmlHttpReg != null) {
+	   xmlHttpReg.open("get", "http://127.0.0.1:5000/FFLv2?getTrackList", true);
+	   xmlHttpReg.send();
+	   xmlHttpReg.onreadystatechange = doResult;
+	}
+}
+
+function doResult() {
+	if (xmlHttpReg.readyState == 4 && xmlHttpReg.status == 200) {//4代表执行完成
+		trackList=xmlHttpReg.responseText;
+		init();
+	}
+}
+
+	
+ var init = function() {
+   var ul = $("canvas");
+
+   
+    var linetop=0;
+    //时间线的左边位置 
+    var lineleft=70;	
+	//时间线的宽度
+	var linewidth=16;
+	var lineheight=0;
+	
+	//整个的开始时间
+    var begintime=0; 
+	//整个的结束时间
+	var endtime=0;
+	
+	//比例缩放
+	var  scale =0.1;
+
+	var col_width=120;
+	
+	var nodes = new Map();
+	var nodeCount=0;
+    var jsonobject = JSON.parse(trackList).tarck;
+    for(var i in jsonobject) {
+        var lines=jsonobject[i];
+		if(begintime==0 || begintime>parseInt(lines.procBeginTime)){
+		   begintime=parseInt(lines.procBeginTime);
+		}
+		
+		if(endtime<parseInt(lines.procEndTime)){
+		   endtime=parseInt(lines.procEndTime);
+		}
+		
+
+		if(lines.node in nodes){
+		}else{
+           nodes[lines.node]=Object.keys(nodes).length ;
+		}
+	}
+
+   var total_height=endtime-begintime;
+
+
+   //背景   
+   for (var node in nodes) { // 遍历Map    
+	 var indexNode=parseInt(nodes[node]);   
+	 var color ="rgba(255,255,255,0.3)";
+ 	 if(indexNode%2==0){
+ 	    color ="rgba(128,128,128,0.3)";
+	}
+
+	ul.appendChild( 
+		createLi({bgColor: color, left: (lineleft +col_width*indexNode),top:(linetop *scale),width:col_width,height:(total_height*scale)}));
+   }
+   ul.appendChild( 
+		createLi({bgColor:"rgb(255,0,03)", left: 0,top:0,width:2,height:(total_height*scale)}));
+
+
+    var step=50/scale;
+    for(var i=0;i< total_height/step ;i++)
+    {
+
+         var liobj= createLi({ bgColor: "rgb(255,255,255)",left: 2,top:(0 + i*step * scale),width:20,height:(step*scale)});
+         liobj.innerHTML= ""+ i *step;  
+    	 ul.appendChild( liobj);
+
+
+    	 liobj= createLi({ bgColor: "rgb(130,130,130)",left: 1,top:(0 + i*step * scale),width:(col_width*Object.keys(nodes).length),height:(1)});    
+    	 ul.appendChild( liobj); 
+
+    }
+
+
+    for(var i in jsonobject)
+    {
+        var lines=jsonobject[i];
+        
+        
+		 		
+		//根据不同tid设置不同的颜色
+		var tid=parseInt(lines.tid);
+		var color = "rgb("+ tid% 255 +","+(tid /255 )%255+",0)";
+		
+		//开始绘制的位置
+		linetop=(parseInt(lines.procBeginTime)-begintime);
+		lineheight=parseInt(lines.procEndTime)-parseInt(lines.procBeginTime);
+		if(lineheight<=0)
+		   lineheight=1;
+		   
+		var leftoffset=15;
+		var nodeId=parseInt(lines.id );		
+		leftoffset=(nodeId%5) * 15 ;
+		
+		
+		//一列的80宽度
+		var index=nodes[lines.node];
+		lineleft +=col_width * index;
+		
+		var liobj=createLi({bgColor: color, left: (lineleft +leftoffset),top:(linetop *scale),width:linewidth,height:(lineheight*scale)},JSON.stringify(lines));
+		liobj.innerHTML= ""+ lines.id + "(" + lineheight + ")";  
+		ul.appendChild(liobj);
+
+		lineleft=70;
+		
+		
+    } 
+  }
+  
+ 
+ var main = function() {
+   ajax();
+  }
+  main();
+ </script>
+</html>

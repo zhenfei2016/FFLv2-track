@@ -2,11 +2,12 @@ cmake_minimum_required(VERSION 3.4.1)
 
 PROJECT(FFLv2-track)
 
-INCLUDE_DIRECTORIES(../FFLv2-lib/include)
+INCLUDE_DIRECTORIES(../install/FFLv2-lib/include)
 LINK_DIRECTORIES(../install/FFLv2-lib/libs)
 
 SET(LOCAL_SRC_FILES
-   service/main.cpp;service/trackMain.cpp)
+   service/main.cpp;service/trackServer.cpp
+   service/trackReader.hpp;service/trackReader.cpp)
 
 if (MSVC)
     add_definitions("/wd4819")
@@ -24,7 +25,14 @@ if (MSVC)
 endif(MSVC)
 
 
-
+#  Êä³öÂ·¾¶ bin
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 ADD_EXECUTABLE(FFLv2-track  ${LOCAL_SRC_FILES})
 TARGET_LINK_LIBRARIES(FFLv2-track FFL)
+
+add_custom_command(TARGET FFLv2-track POST_BUILD  
+  COMMAND  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/bin/track.json ${PROJECT_BINARY_DIR}/bin/Debug/
+  COMMAND  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/web/timeline.html ${PROJECT_BINARY_DIR}/bin/Debug/
+  COMMAND  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/bin/track.json ${PROJECT_BINARY_DIR}/bin/Release/  
+  COMMAND  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/web/timeline.html ${PROJECT_BINARY_DIR}/bin/Release/ )
 
