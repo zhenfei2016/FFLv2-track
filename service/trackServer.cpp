@@ -54,6 +54,22 @@ class HttpApiTimelineHandelr : public FFL::HttpApiHandler {
 	}
 };
 
+class HttpTrackFileHandelr : public FFL::HttpFileHandler {
+	//
+	//  返回是否处理这个请求
+	//
+	virtual bool onHttpFile(FFL::HttpConnect* conn, const FFL::String& path) {
+		FFL::sp<FFL::HttpFileResponse> res = new FFL::HttpFileResponse(conn);
+		char processdir[1024] = { 0 };
+		char processname[1024] = { 0 };
+		FFL_getCurrentProcessPath(processdir, 1023, processname);
+		strcat(processdir, path.c_str());
+		res->response(processdir);
+		conn->realese();
+		return true;
+	}
+};
+
 static int gExitFlag = 0;
 void trackExit(const char* args, void* userdata) {	
 	gExitFlag = 1;	
@@ -94,7 +110,8 @@ int serverMain() {
 
 	
 	FFL::sp<FFL::HttpApiHandler> timeLinehandler = new HttpApiTimelineHandelr();
-	mgr.registerApi("/timeline.html?", timeLinehandler);
+	//mgr.registerApi("/timeline.html?", timeLinehandler);
+	mgr.setFileHandler(new HttpTrackFileHandelr());
 	FFL::TcpServer server(NULL,5000);
 	server.setConnectManager(&mgr);
 	server.start();

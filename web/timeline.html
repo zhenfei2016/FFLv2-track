@@ -16,14 +16,103 @@
     font-size:50px; line-height:100px; border:2px solid green; color:green;
     position:absolute; right:20px; bottom:20px; 
    }
+
+   
+   .header{ height:80px}
+   .footer{ height:100px}
+    html,body,.content{ height:100%}
+	*{box-sizing:border-box }
+	#canvas{ height:100%;
+	border-bottom:100px solid transparent;
+	border-top:80px solid transparent;
+	   overflow: scroll;
+    position: relative;
+    top: 0;
+    left: 0;
+	z-index:10px
+	}
+	.content .header{ position:absolute;top:0;left:0;width:100%;height:80px;z-index:100;background:rgba(255,255,255,0.9)}
+	.content .footer{ position:absolute;bottom:0;left:0;width:100%;height:100px;z-index:100;background:rgba(255,255,255,0.9)}
   </style>  
   
  </head>
+ 
  <body>
-  <ul id="canvas"></ul>
- </body>
- <script type="text/javascript">
-  var $ = function(id) {
+ <article class="content">
+ <div class="header" >
+    <tr>
+	<label>zoom：</label>
+	<input id="zoom" type="text"/>
+	<button onclick="clickScale('zoom')">提交</button>
+    <tr>
+	
+	<tr>
+	<label>trackid</label>
+	<input id="trackid" type="text"/>
+	<button onclick="clickScale('trackid')">提交</button>
+    <tr>
+ </div>
+    <ul id="canvas"></ul>
+ <div class="footer">
+   11111111111111111111111
+    <ul id="detail"></ul>
+ </div>
+ </article>
+</body>
+
+<script type="text/javascript">
+function clickScale(id){
+    var view=document.getElementById(id);
+	
+	if(id=="trackid"){
+	   showTimeline(view.value);
+	}else if(id=="zoom"){
+      // document.querySelector(".header").style.height=Math.max(view.value,80)+'px'
+	  globalSetting.scale=view.value;
+	}
+}
+function change(ev){
+//debugger
+document.querySelector(".header").style.height=Math.max(ev.value,80)+'px'
+}
+ //
+//  全局的配置
+//
+var globalSetting = new Object();
+globalSetting.lineLeft = 70;
+globalSetting.lineTop = 0;
+globalSetting.scale =0.01;
+//每一列的宽度
+globalSetting.colWidth =150;
+//每一列中矩形的宽度
+globalSetting.colItemWidth =10;
+//每一列中交错矩形个数
+globalSetting.colItemCount =5;
+//绘制的根view，都绘制在他的下面
+globalSetting.rootView=null;
+//请求数据的url
+globalSetting.url="http://127.0.0.1:5000/FFLv2?getTrackList";
+//所有的节点
+globalSetting.nodes=null;
+//当前的json数据
+globalSetting.jsonData=null;
+
+var globalColorTable=new Array()
+globalColorTable[0]= "rgba(255 ,255 ,0,1.0)";
+globalColorTable[1]= "rgba(255 ,255 ,0,0.9)";
+globalColorTable[2]= "rgba(255 ,255 ,0,0.8)";
+globalColorTable[3]= "rgba(255 ,255 ,0,0.7)";
+globalColorTable[4]= "rgba(255 ,255 ,0,0.6)";
+globalColorTable[5]= "rgba(255 ,255 ,0,0.5)";
+globalColorTable[6]= "rgba(155 ,155 ,0,0.5)";
+globalColorTable[7]= "rgba(155 ,155 ,0,0.6)";
+globalColorTable[8]= "rgba(155 ,155 ,0,0.7)";
+globalColorTable[9]= "rgba(155 ,155 ,0,0.8)";
+globalColorTable[10]= "rgba(155 ,155 ,0,0.9)";
+globalColorTable[11]= "rgba(155 ,0 ,255,1.5)";
+
+
+var $ = function(id) {
    return document.getElementById(id);
   }
   var $_name = function(tag) {
@@ -32,22 +121,32 @@
  var Event_click = function(ev){
       let th = this;
       alert(th.data)
+	  
+	  showTimeline("1");
  }
  
- var createLi = function(attr,showtext) {
-   var ele = document.createElement("li");
-   if(showtext!=null){
-   	   ele.onclick = Event_click;
-   	   ele.data=showtext;
-   	}
-   ele.style.backgroundColor = attr.bgColor || "black";
-   ele.style.left   = attr.left + "px";
-   ele.style.top    = attr.top + "px";
-   ele.style.width  = attr.width+ "px";
-   ele.style.height = attr.height + "px";
-
-   return ele;
+ //
+ //  绘制控件
+ //
+ var createView = function(parent,left,top,width,height,color,text) {
+   var viewRect = document.createElement("li");
+   if(text!=null){
+      viewRect.onclick = Event_click;
+      viewRect.data=text;
+   }else{
+    }
+   
+   
+   viewRect.style.left   = left + "px";
+   viewRect.style.top    = top + "px";
+   viewRect.style.width  = width+ "px";
+   viewRect.style.height = height + "px";
+   viewRect.style.backgroundColor = color || "black";
+   parent.appendChild(viewRect);
+   return viewRect;
   }
+  
+  
   var loca = {
    x: 1000, 
    y: 0
@@ -56,9 +155,8 @@
  </script>
  <script> 
 
- var trackList;
- var xmlHttpReg = null;
-function ajax() {
+var xmlHttpReg = null;
+function loadJson() {
 	if (window.ActiveXObject) {//如果是IE
 	   xmlHttpReg = new ActiveXObject("Microsoft.XMLHTTP");
 	} else if (window.XMLHttpRequest) {
@@ -66,7 +164,7 @@ function ajax() {
 	}
 	//如果实例化成功,就调用open()方法,就开始准备向服务器发送请求
 	if (xmlHttpReg != null) {
-	   xmlHttpReg.open("get", "http://127.0.0.1:5000/FFLv2?getTrackList", true);
+	   xmlHttpReg.open("get", globalSetting.url, true);
 	   xmlHttpReg.send();
 	   xmlHttpReg.onreadystatechange = doResult;
 	}
@@ -74,39 +172,103 @@ function ajax() {
 
 function doResult() {
 	if (xmlHttpReg.readyState == 4 && xmlHttpReg.status == 200) {//4代表执行完成
-		trackList=xmlHttpReg.responseText;
-		init();
+		var trackList=xmlHttpReg.responseText;
+		globalSetting.jsonData=trackList;
+		updateViews(trackList);
 	}
 }
 
+
+
+//绘制背景，刻度
+var drawBg=function(width,height,colCount){
+   var ul=globalSetting.rootView;
+   var color ="rgba(255,255,255,0.3)";
+   for (var i=0;i<colCount;i++){	 
+ 	 if(i%2==0){
+ 	    color ="rgba(128,128,128,0.3)";
+	}else{
+	    color ="rgba(255,255,255,0.3)";
+	}
 	
- var init = function() {
-   var ul = $("canvas");
+	var scale=globalSetting.scale;
+	var t=globalSetting.lineTop *scale;
+	var l=globalSetting.lineLeft+globalSetting.colWidth*i;
+	var h=height*scale;
+	var w=globalSetting.colWidth;
+	//交错绘制列背景
+    createView( ul,l,t,w,h,color);
+  }
+	
+	//绘制时间轴
+	createView( ul,0,0,1,height,"rgb(255,0,0)",null);    
+	var step=50/scale;
+	for(var j=0;j< height/step ;j++){
+		 var top= j*step * scale;
+		 //绘制刻度值
+		 var liobj= createView(ul,1,top,1,1,"rgb(255,255,255)");
+		 liobj.innerHTML= ""+ j *step;  
+		 
+		 //刻度横向
+		 createView(ul, 1,top,width,1,"rgb(130,130,130)");
+	}
+}
+
+var drawForeground=function(jsonObj,begintime){
+    var ul=globalSetting.rootView;
+    var scale=globalSetting.scale;
+    for(var k in jsonObj){
+        var lines=jsonObj[k];       
+        
+		//根据不同tid设置不同的颜色
+		var tid=parseInt(lines.tid);
+		var color = "rgb("+ tid% 255 +","+(tid /255 )%255+",0)";
+		//color=globalColorTable[globalSetting.nodes[lines.node].index];
+		//开始绘制的位置
+		var top=(parseInt(lines.procBeginTime)-begintime) * scale;
+		var height=(parseInt(lines.procEndTime)-parseInt(lines.procBeginTime)) ;
+		if(height<=0)
+		   height=1;
+		   
+		var leftoffset=0;
+		var nodeId=parseInt(lines.id );		
+		leftoffset=(nodeId%globalSetting.colItemCount) * (globalSetting.colWidth/globalSetting.colItemCount)  ;
+		
+		
+		//一列的80宽度
+		var index=globalSetting.nodes[lines.node].index;
+		var left =globalSetting.colWidth * index + leftoffset + globalSetting.lineLeft;
+		
+		var liobj=createView(ul,
+		               left,
+					   top,
+					   globalSetting.colItemWidth,
+					   height*scale,
+					   color,
+					   JSON.stringify(lines));
+		liobj.innerHTML= "<font size=\"1\">"+ lines.id + "(" + height + ")</font>";  		
+	} 
+}
+
+//更新所有的控件	
+var updateViews = function(trackList) {
+   globalSetting.rootView = $("canvas");
 
    
-    var linetop=0;
-    //时间线的左边位置 
-    var lineleft=70;	
-	//时间线的宽度
-	var linewidth=16;
-	var lineheight=0;
-	
-	//整个的开始时间
-    var begintime=0; 
-	//整个的结束时间
-	var endtime=0;
-	
-	//比例缩放
-	var  scale =0.1;
-
-	var col_width=120;
-	
-	var nodes = new Map();
-	var nodeCount=0;
-    var jsonobject = JSON.parse(trackList).tarck;
-    for(var i in jsonobject) {
-        var lines=jsonobject[i];
-		if(begintime==0 || begintime>parseInt(lines.procBeginTime)){
+   //
+   //  通过json分析出有node的个数，总的高度
+   //      
+   
+   var totalWidth=0;
+   var totalHeight=0;   
+   var nodeCount=0;
+   var begintime=0;
+   var endtime=0;
+   
+   var jsonObject = JSON.parse(trackList).tarck;
+   for(var k in jsonObject) {
+        var lines=jsonObject[k];
+        if(begintime==0 || begintime>parseInt(lines.procBeginTime)){
 		   begintime=parseInt(lines.procBeginTime);
 		}
 		
@@ -115,84 +277,72 @@ function doResult() {
 		}
 		
 
-		if(lines.node in nodes){
+		if(globalSetting.nodes==null){
+		   globalSetting.nodes=new Map();
+		}
+		
+		if(lines.node in globalSetting.nodes){
 		}else{
-           nodes[lines.node]=Object.keys(nodes).length ;
+           globalSetting.nodes[lines.node]=new Object();
+		   globalSetting.nodes[lines.node].index=Object.keys(globalSetting.nodes).length -1;
+		   nodeCount++;
 		}
 	}
+    totalHeight=endtime-begintime;
+	totalWidth=nodeCount * globalSetting.colWidth;
 
-   var total_height=endtime-begintime;
-
-
-   //背景   
-   for (var node in nodes) { // 遍历Map    
-	 var indexNode=parseInt(nodes[node]);   
-	 var color ="rgba(255,255,255,0.3)";
- 	 if(indexNode%2==0){
- 	    color ="rgba(128,128,128,0.3)";
-	}
-
-	ul.appendChild( 
-		createLi({bgColor: color, left: (lineleft +col_width*indexNode),top:(linetop *scale),width:col_width,height:(total_height*scale)}));
-   }
-   ul.appendChild( 
-		createLi({bgColor:"rgb(255,0,03)", left: 0,top:0,width:2,height:(total_height*scale)}));
-
-
-    var step=50/scale;
-    for(var i=0;i< total_height/step ;i++)
-    {
-
-         var liobj= createLi({ bgColor: "rgb(255,255,255)",left: 2,top:(0 + i*step * scale),width:20,height:(step*scale)});
-         liobj.innerHTML= ""+ i *step;  
-    	 ul.appendChild( liobj);
-
-
-    	 liobj= createLi({ bgColor: "rgb(130,130,130)",left: 1,top:(0 + i*step * scale),width:(col_width*Object.keys(nodes).length),height:(1)});    
-    	 ul.appendChild( liobj); 
-
-    }
-
-
-    for(var i in jsonobject)
-    {
-        var lines=jsonobject[i];
-        
-        
-		 		
-		//根据不同tid设置不同的颜色
-		var tid=parseInt(lines.tid);
-		var color = "rgb("+ tid% 255 +","+(tid /255 )%255+",0)";
-		
-		//开始绘制的位置
-		linetop=(parseInt(lines.procBeginTime)-begintime);
-		lineheight=parseInt(lines.procEndTime)-parseInt(lines.procBeginTime);
-		if(lineheight<=0)
-		   lineheight=1;
-		   
-		var leftoffset=15;
-		var nodeId=parseInt(lines.id );		
-		leftoffset=(nodeId%5) * 15 ;
-		
-		
-		//一列的80宽度
-		var index=nodes[lines.node];
-		lineleft +=col_width * index;
-		
-		var liobj=createLi({bgColor: color, left: (lineleft +leftoffset),top:(linetop *scale),width:linewidth,height:(lineheight*scale)},JSON.stringify(lines));
-		liobj.innerHTML= ""+ lines.id + "(" + lineheight + ")";  
-		ul.appendChild(liobj);
-
-		lineleft=70;
-		
-		
-    } 
+	//绘制背景
+    drawBg(totalWidth,totalHeight,nodeCount); 
+	//绘制前景
+    drawForeground(jsonObject,begintime);
   }
   
- 
- var main = function() {
-   ajax();
+//显示一个id的所有执行过程
+var showTimeline =function(id) {
+  var items=new Array();
+  var itemIndex=0;
+  var begintime=0;
+  var endtime=0;
+   
+  var jsonObject = JSON.parse(globalSetting.jsonData).tarck;
+  for(var k in jsonObject) {
+     var lines=jsonObject[k];
+	 if(lines.id==id){
+	   items[itemIndex]=lines;
+	   itemIndex++;  
+
+	   if(begintime==0 || begintime>parseInt(lines.procBeginTime)){
+		   begintime=parseInt(lines.procBeginTime);
+    	}
+		
+		if(endtime<parseInt(lines.procEndTime)){
+		   endtime=parseInt(lines.procEndTime);
+		}
+	 }
   }
-  main();
+  
+  //显示
+   var view=document.getElementById("detail");
+   
+   var top=0;
+   var left=10;
+   var width=endtime-begintime;
+   var heiht = 90;
+   createView(view, left,top,width*globalSetting.scale,heiht,"rgb(10,100,100)");
+   
+   for(j = 0; j < items.length; j++) {
+    var lines=items[j];
+	
+	left=(parseInt(lines.procBeginTime)-begintime);
+	top=10;	
+	width=(parseInt(lines.procEndTime)-parseInt(lines.procBeginTime));
+	heiht=30;
+	var v=createView(view, left*globalSetting.scale,top,width*globalSetting.scale,heiht,"rgb(100,0,100)");
+	v.innerHTML= "<font size=\"1\">"+ lines.id +  "(" + width + "|"+(endtime-begintime)+")" + lines.node +  "</font>"; 
+   } 
+}
+
+loadJson();
+ 
  </script>
 </html>
