@@ -7,7 +7,7 @@
 *  trackServer.cpp   
 *  Created by zhufeifei(34008081@qq.com) on 2018/07/26 
 *  https://github.com/zhenfei2016/FFL-v2.git
-*  Æô¶¯track http·şÎñÆ÷
+*  å¯åŠ¨track httpæœåŠ¡å™¨
 *
 */
 #include <FFL.h>
@@ -44,7 +44,7 @@ public:
 
 class HttpTrackFileHandelr : public FFL::HttpFileHandler {
 	//
-	//  ·µ»ØÊÇ·ñ´¦ÀíÕâ¸öÇëÇó
+	//  è¿”å›æ˜¯å¦å¤„ç†è¿™ä¸ªè¯·æ±‚
 	//
 	virtual bool onHttpFile(FFL::HttpConnect* conn, const FFL::String& path) {
 		FFL::sp<FFL::HttpFileResponse> res = new FFL::HttpFileResponse(conn);
@@ -77,8 +77,11 @@ void stopService(const char* args, void* userdata) {
 }
 
 void openTool(const char* args, void* userdata) {
-	printf("failed to openTool. \n");
+#if WIN32
 	ShellExecuteA(NULL,"open", "http://127.0.0.1:5000/timeline.html", NULL, NULL, SW_SHOW);
+#else
+    printf("failed to openTool. \n");
+#endif
 }
 
 
@@ -101,7 +104,7 @@ int serverMain() {
 	server.setConnectManager(&mgr);
 	server.start();
 	//
-	//  ´òÓ¡Ò»ÏÂ°ïÖúº¯Êı
+	//  æ‰“å°ä¸€ä¸‹å¸®åŠ©å‡½æ•°
 	//
 	FFL_cmdUsage(gCmdOption);
 
