@@ -41,18 +41,6 @@ public:
     
 };
 
-class HttpApiTimelineHandelr : public FFL::HttpApiHandler {
-	virtual void onHttpQuery(FFL::HttpConnect* conn, FFL::String& path, FFL::String& query) {		
-		FFL::sp<FFL::HttpHtmlResponse> res=new FFL::HttpHtmlResponse(conn);
-		char processdir[1024] = { 0 };
-		char processname[1024] = { 0 };
-		FFL_getCurrentProcessPath(processdir, 1023, processname);
-		strcat(processdir, "timeline.html");
-		res->htmlPath(processdir);
-		res->response();
-		conn->realese();
-	}
-};
 
 class HttpTrackFileHandelr : public FFL::HttpFileHandler {
 	//
@@ -96,25 +84,26 @@ void openTool(const char* args, void* userdata) {
 
 static CmdOption  gCmdOption[] = {
 	{ "exit",0,trackExit,"exit sys." },	
-	{ "start",0,startService,"start service" },
-	{ "restart",0,restartService,"re start service" },
-	{ "stop",0,stopService,"stop service" },
-	{ "open",0,openTool,"open tool" },	
+	//{ "start",0,startService,"start service" },
+	//{ "restart",0,restartService,"re start service" },
+	//{ "stop",0,stopService,"stop service" },
+	{ "open",0,openTool,"open timeline tool" },	
 	{ 0,0,0,0 },
 };
 
 int serverMain() {
 	FFL::HttpConnectMgr mgr;    
     FFL::sp<FFL::HttpApiHandler> handler=new HttpApiGetTrackListHandelr();
-    mgr.registerApi("/FFLv2?getTrackList", handler);
-
-	
-	FFL::sp<FFL::HttpApiHandler> timeLinehandler = new HttpApiTimelineHandelr();
-	//mgr.registerApi("/timeline.html?", timeLinehandler);
+    mgr.registerApi("/FFLv2?getTrackList", handler);		
 	mgr.setFileHandler(new HttpTrackFileHandelr());
+
 	FFL::TcpServer server(NULL,5000);
 	server.setConnectManager(&mgr);
 	server.start();
+	//
+	//  打印一下帮助函数
+	//
+	FFL_cmdUsage(gCmdOption);
 
 	FFL_inputLooper(gCmdOption, 0, quitFlag);
 	return 0;

@@ -23,7 +23,7 @@
     html,body,.content{ height:100%}
 	*{box-sizing:border-box }
 	#canvas{ height:100%;
-	border-bottom:100px solid transparent;
+	border-bottom:200px solid transparent;
 	border-top:80px solid transparent;
 	   overflow: scroll;
     position: relative;
@@ -32,7 +32,7 @@
 	z-index:10px
 	}
 	.content .header{ position:absolute;top:0;left:0;width:100%;height:80px;z-index:100;background:rgba(255,255,255,0.9)}
-	.content .footer{ position:absolute;bottom:0;left:0;width:100%;height:100px;z-index:100;background:rgba(255,255,255,0.9)}
+	.content .footer{ position:absolute;bottom:0;left:0;width:100%;height:200px;z-index:100;background:rgba(255,255,255,0.9)}
   </style>  
   
  </head>
@@ -51,10 +51,11 @@
 	<input id="trackid" type="text"/>
 	<button onclick="clickScale('trackid')">提交</button>
     <tr>
+	
+	<button onclick="clickScale('framerate')">计算帧率</button>
  </div>
     <ul id="canvas"></ul>
- <div class="footer">
-   11111111111111111111111
+ <div class="footer">   
     <ul id="detail"></ul>
  </div>
  </article>
@@ -69,6 +70,8 @@ function clickScale(id){
 	}else if(id=="zoom"){
       // document.querySelector(".header").style.height=Math.max(view.value,80)+'px'
 	  globalSetting.scale=view.value;
+	}else if(id=="framerate"){
+	  calcFrameRate();
 	}
 }
 function change(ev){
@@ -324,24 +327,98 @@ var showTimeline =function(id) {
   //显示
    var view=document.getElementById("detail");
    
+   
+   var childs = view.childNodes;
+   for(var i = 0; i < childs.length; i++) {
+       view.removeChild(childs[i]); 
+    } 
+
    var top=0;
    var left=10;
    var width=endtime-begintime;
-   var heiht = 90;
-   createView(view, left,top,width*globalSetting.scale,heiht,"rgb(10,100,100)");
+   var height = 90 *  items.length;
+   createView(view, left,top,width*globalSetting.scale,height,"rgba(10,100,100,0.3)");
    
+   var lastTime=0;
    for(j = 0; j < items.length; j++) {
     var lines=items[j];
 	
-	left=(parseInt(lines.procBeginTime)-begintime);
-	top=10;	
+	
+	height=30;
+	top=10 + (height + 20) *j;	
 	width=(parseInt(lines.procEndTime)-parseInt(lines.procBeginTime));
-	heiht=30;
-	var v=createView(view, left*globalSetting.scale,top,width*globalSetting.scale,heiht,"rgb(100,0,100)");
-	v.innerHTML= "<font size=\"1\">"+ lines.id +  "(" + width + "|"+(endtime-begintime)+")" + lines.node +  "</font>"; 
+	
+	var tt= parseInt(lines.procBeginTime) -lastTime ;
+	if(lastTime==0){
+	   tt=0;
+	}
+	
+	var v=createView(view, 0,top,1,height,"rgba(255,0,100,0.1)");	
+	var showtex=lines.node.replace(/-/,"");
+	v.innerHTML= "<font size=\"1\">"+ showtex + "(+"+ tt +  "us)</font>"; 
+	lastTime=lines.procEndTime;
+	
+	
+	left=300;	;
+	 v=createView(view, left,top,width*globalSetting.scale,height,"rgba(100,0,100,0.5)");
+	v.innerHTML= "<font size=\"1\">"+"(" + width + "|"+(endtime-begintime)+")</font>"; 
    } 
 }
 
+var calcFrameRate=function(){
+   var begintime=0;
+   var endtime=0;
+   
+   var jsonObject = JSON.parse(globalSetting.jsonData).tarck;
+   for(var k in jsonObject) {
+     var lines=jsonObject[k];	 
+	 
+   if(begintime==0 || begintime>parseInt(lines.procBeginTime)){
+	   begintime=parseInt(lines.procBeginTime);
+	}
+	
+	if(endtime<parseInt(lines.procEndTime)){
+	   endtime=parseInt(lines.procEndTime);
+	}
+ 
+  }
+  
+  var rateMap=new Map();
+  var rateArray=new Array();
+  var index=0;
+  for(var k in globalSetting.nodes){
+     rateArray[index]= new Object();
+	 rateArray[index].name=k;
+	 rateArray[index].begintime=begintime+ 1000*1000;
+	 rateArray[index].count=0;
+	 rateArray[index].text=k;
+	 
+	 rateMap[k]=index;
+	 
+	 index++;
+  }
+  
+  
+  for(var k in jsonObject) {
+     var lines=jsonObject[k];	
+	 var index=rateMap[lines.node];
+	 if(parseInt(lines.procBeginTime)<rateArray[index].begintime){
+		  rateArray[index].count++;		
+	 }else{
+	    rateArray[index].begintime +=1000*1000;
+		rateArray[index].text= rateArray[index].text + "," + rateArray[index].count;
+		rateArray[index].count=1;
+	 }
+  }
+  
+  
+  var showtext="";
+  for(var i=0;i<rateArray.length;i++){
+     showtext= showtext + rateArray[i].text + "\r";
+  }
+  
+  alert(showtext);
+}
 loadJson();
  
  </script>

@@ -33,6 +33,5 @@ TARGET_LINK_LIBRARIES(FFLv2-track FFL)
 add_custom_command(TARGET FFLv2-track POST_BUILD  
   COMMAND  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/bin/track.json ${PROJECT_BINARY_DIR}/bin/Debug/
   COMMAND  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/web/timeline.html ${PROJECT_BINARY_DIR}/bin/Debug/
-  COMMAND  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/bin/track.json ${PROJECT_BINARY_DIR}/bin/Release/  
-  COMMAND  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/web/timeline.html ${PROJECT_BINARY_DIR}/bin/Release/ )
+   )
 
