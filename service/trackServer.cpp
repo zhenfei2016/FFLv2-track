@@ -22,7 +22,10 @@
 TrackFileReader  gTrackFile;
 class HttpApiGetTrackListHandelr : public FFL::HttpApiHandler{
 public:
-    virtual void onHttpQuery(FFL::HttpConnect* conn, FFL::String& path, FFL::String& query){
+    virtual void onHttpQuery(FFL::HttpConnect* conn, FFL::String& query, FFL::HttpRequest* request){
+		FFL::List<FFL::String> params;
+		request->getQueryParams(params);
+
         FFL::String json;     
 
 		do {
@@ -51,7 +54,7 @@ class HttpTrackFileHandelr : public FFL::HttpFileHandler {
 		char processdir[1024] = { 0 };
 		char processname[1024] = { 0 };
 		FFL_getCurrentProcessPath(processdir, 1023, processname);
-		strcat(processdir, path.c_str());
+		strcat_s(processdir, 1023, path.c_str());
 		res->response(processdir);
 		conn->realese();
 		return true;
@@ -97,12 +100,13 @@ static CmdOption  gCmdOption[] = {
 int serverMain() {
 	FFL::HttpConnectMgr mgr;    
     FFL::sp<FFL::HttpApiHandler> handler=new HttpApiGetTrackListHandelr();
-    mgr.registerApi("/FFLv2?getTrackList", handler);		
+    mgr.registerApi("/FFLv2?gettrackList", handler);		
 	mgr.setFileHandler(new HttpTrackFileHandelr());
-
 	FFL::TcpServer server(NULL,5000);
 	server.setConnectManager(&mgr);
 	server.start();
+
+
 	//
 	//  打印一下帮助函数
 	//

@@ -48,7 +48,7 @@ void TrackFileReader::reset() {
 	char processname[1024] = { 0 }; 
 	FFL_getCurrentProcessPath(processdir,1023, processname);
 
-	strcat(processdir, "track.json");
+	strcat_s(processdir,1023, "track.json");
 	open(processdir);
 }
 //
@@ -77,7 +77,7 @@ bool TrackFileReader::readJson(FFL::String& json, int32_t maxLine) {
 				lineArray.push_back(toJson(mStream));
 				mStream = "";
 				start = cur + 1;
-				if (lineArray.size() >= maxLine) {
+				if ((int32_t)lineArray.size() >=maxLine) {
 					bQuit = true;
 				}
 			}
