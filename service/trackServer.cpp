@@ -29,9 +29,9 @@ public:
         FFL::String json;     
 
 		do {
-			if (!gTrackFile.readJson(json, 1000)) {
+			if (!gTrackFile.readJson(json, 2000)) {
 				gTrackFile.reset();
-				gTrackFile.readJson(json, 1000);
+				gTrackFile.readJson(json, 2000);
 			}
 		} while (0);
 		
@@ -81,7 +81,7 @@ void stopService(const char* args, void* userdata) {
 
 void openTool(const char* args, void* userdata) {
 #if WIN32
-	ShellExecuteA(NULL,"open", "http://127.0.0.1:5000/timeline.html", NULL, NULL, SW_SHOW);
+	ShellExecuteA(NULL,"open", "http://127.0.0.1:5001/timeline.html", NULL, NULL, SW_SHOW);
 #else
     printf("failed to openTool. \n");
 #endif
@@ -102,16 +102,17 @@ int serverMain() {
     FFL::sp<FFL::HttpApiHandler> handler=new HttpApiGetTrackListHandelr();
     mgr.registerApi("/FFLv2?gettrackList", handler);		
 	mgr.setFileHandler(new HttpTrackFileHandelr());
-	FFL::TcpServer server(NULL,5000);
+	FFL::TcpServer server(NULL,5001);
+	FFL_LOG_INFO("start http server: port=5001");
 	server.setConnectManager(&mgr);
 	server.start();
 
-
+	openTool(0, 0);
 	//
 	//  打印一下帮助函数
 	//
 	FFL_cmdUsage(gCmdOption);
+	FFL_cmdLooper(gCmdOption, 0, quitFlag);
 
-	FFL_inputLooper(gCmdOption, 0, quitFlag);
 	return 0;
 }
