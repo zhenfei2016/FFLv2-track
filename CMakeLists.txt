@@ -31,7 +31,13 @@ ADD_EXECUTABLE(FFLv2-track  ${LOCAL_SRC_FILES})
 TARGET_LINK_LIBRARIES(FFLv2-track FFL)
 
 add_custom_command(TARGET FFLv2-track POST_BUILD  
-  COMMAND  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/web/track.json ${PROJECT_BINARY_DIR}/../bin/Debug/
-  COMMAND  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/web/timeline.html ${PROJECT_BINARY_DIR}/../bin/Debug/
+  COMMAND  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/web/track.json ${PROJECT_BINARY_DIR}/../bin/${CMAKE_CFG_INTDIR}/
+  COMMAND  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/web/timeline.html ${PROJECT_BINARY_DIR}/../bin/${CMAKE_CFG_INTDIR}/
    )
 
+set( FFLV2_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../FFLv2-lib)
+if( IS_DIRECTORY ${FFLV2_SOURCE_DIR} )
+   # 第二个cassdk.out参数用于指定外部文件夹在输出文件夹中的位置
+  add_subdirectory( ${FFLV2_SOURCE_DIR} FFLv2.out )
+ 
+endif()
