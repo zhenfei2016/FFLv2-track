@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 3.4.1)
-
 PROJECT(FFLv2-track)
 
-INCLUDE_DIRECTORIES(../install/FFLv2-lib/include)
-LINK_DIRECTORIES(../install/FFLv2-lib/libs)
+#  åŠ è½½å…¬ç”¨åº“ FFLv2
+SET(CMAKE_MODULE_PATH  ${CMAKE_SOURCE_DIR}/../FFLv2-cmakemodule/ )
+INCLUDE(${CMAKE_MODULE_PATH}FFLv2lib.cmake)
+
+INCLUDE_DIRECTORIES(${FFLV2_LIB_INCLUDE_PATH})
+LINK_DIRECTORIES(${FFLV2_LIB_LIB_PATH})
 
 SET(LOCAL_SRC_FILES
    service/main.cpp;service/trackServer.cpp
@@ -25,7 +28,7 @@ if (MSVC)
 endif(MSVC)
 
 
-#  Êä³öÂ·¾¶ bin
+#  è¾“å‡ºè·¯å¾„ bin
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/../bin)
 ADD_EXECUTABLE(FFLv2-track  ${LOCAL_SRC_FILES})
 TARGET_LINK_LIBRARIES(FFLv2-track FFL)
@@ -33,11 +36,5 @@ TARGET_LINK_LIBRARIES(FFLv2-track FFL)
 add_custom_command(TARGET FFLv2-track POST_BUILD  
   COMMAND  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/web/track.json ${PROJECT_BINARY_DIR}/../bin/${CMAKE_CFG_INTDIR}/
   COMMAND  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/web/timeline.html ${PROJECT_BINARY_DIR}/../bin/${CMAKE_CFG_INTDIR}/
-   )
+ )
 
-set( FFLV2_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../FFLv2-lib)
-if( IS_DIRECTORY ${FFLV2_SOURCE_DIR} )
-   # µÚ¶þ¸öcassdk.out²ÎÊýÓÃÓÚÖ¸¶¨Íâ²¿ÎÄ¼þ¼ÐÔÚÊä³öÎÄ¼þ¼ÐÖÐµÄÎ»ÖÃ
-  add_subdirectory( ${FFLV2_SOURCE_DIR} FFLv2.out )
- 
-endif()
