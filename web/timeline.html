@@ -102,17 +102,17 @@ globalSetting.jsonData=null;
 
 var globalColorTable=new Array()
 globalColorTable[0]= "rgba(255 ,255 ,0,1.0)";
-globalColorTable[1]= "rgba(255 ,255 ,0,0.9)";
-globalColorTable[2]= "rgba(255 ,255 ,0,0.8)";
-globalColorTable[3]= "rgba(255 ,255 ,0,0.7)";
-globalColorTable[4]= "rgba(255 ,255 ,0,0.6)";
-globalColorTable[5]= "rgba(255 ,255 ,0,0.5)";
-globalColorTable[6]= "rgba(155 ,155 ,0,0.5)";
-globalColorTable[7]= "rgba(155 ,155 ,0,0.6)";
-globalColorTable[8]= "rgba(155 ,155 ,0,0.7)";
-globalColorTable[9]= "rgba(155 ,155 ,0,0.8)";
-globalColorTable[10]= "rgba(155 ,155 ,0,0.9)";
-globalColorTable[11]= "rgba(155 ,0 ,255,1.5)";
+globalColorTable[1]= "rgba(255 ,255 ,100,0.9)";
+globalColorTable[2]= "rgba(255 ,105 ,0,0.8)";
+globalColorTable[3]= "rgba(10 ,255 ,100,0.7)";
+globalColorTable[4]= "rgba(200 ,100 ,15,0.6)";
+globalColorTable[5]= "rgba(200 ,50 ,0,0.5)";
+globalColorTable[6]= "rgba(155 ,"+Math.random()*255+1+" ,0,0.5)";
+globalColorTable[7]= "rgba("+Math.random()*255+1+" ,155 ,0,0.6)";
+globalColorTable[8]= "rgba(155 ,"+Math.random()*255+1+" ,0,0.7)";
+globalColorTable[9]= "rgba(155 ,155 ,"+Math.random()*255+1+",0.8)";
+globalColorTable[10]= "rgba("+Math.random()*255+1+" ,155 ,0,0.9)";
+globalColorTable[11]= "rgba(155 ,"+Math.random()*255+1+" ,255,1.5)";
 
 
 var $ = function(id) {
@@ -226,7 +226,7 @@ var drawForeground=function(jsonObj,begintime){
 		//根据不同tid设置不同的颜色
 		var tid=parseInt(lines.tid);
 		var color = "rgb("+ tid% 255 +","+(tid /255 )%255+",0)";
-		//color=globalColorTable[globalSetting.nodes[lines.node].index];
+		color=globalColorTable[globalSetting.nodes[lines.node].index];
 		//开始绘制的位置
 		var top=(parseInt(lines.procBeginTime)-begintime) * scale;
 		var height=(parseInt(lines.procEndTime)-parseInt(lines.procBeginTime)) ;

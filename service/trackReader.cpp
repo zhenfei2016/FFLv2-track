@@ -48,7 +48,7 @@ void TrackFileReader::reset() {
 	char processname[1024] = { 0 }; 
 	FFL_getCurrentProcessPath(processdir,1023, processname);
 
-	strcat_s(processdir,1023, "track.json");
+	strcat(processdir, "track.json");
 	open(processdir);
 }
 //

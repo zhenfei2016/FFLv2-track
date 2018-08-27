@@ -54,7 +54,7 @@ class HttpTrackFileHandelr : public FFL::HttpFileHandler {
 		char processdir[1024] = { 0 };
 		char processname[1024] = { 0 };
 		FFL_getCurrentProcessPath(processdir, 1023, processname);
-		strcat_s(processdir, 1023, path.c_str());
+		strcat(processdir, path.c_str());
 		res->response(processdir);
 		conn->realese();
 		return true;
